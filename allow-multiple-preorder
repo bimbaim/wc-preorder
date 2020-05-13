@@ -1,0 +1,49 @@
+<?php
+
+//allow multiple preorder plugin woocommerce pre order
+
+public function validate_cart( $valid, $product_id ) {
+        global $woocommerce;
+
+        if ( WC_Pre_Orders_Product::product_can_be_pre_ordered( $product_id ) ) {
+
+            if( $woocommerce->cart->get_cart_contents_count() >= 1 ) {
+
+               if ( $this->cart_contains_pre_order() ) {
+                      return $valid;
+               }
+               $string = __( 'Your cart contains items, please complete that order first and then purchase pre-order items, because pre-orders must be purchased separately.', 'wc-pre-orders' );
+
+                // Backwards compatible (pre 2.1) for outputting notice
+                if ( function_exists( 'wc_add_notice' ) ) {
+                    wc_add_notice( $string );
+                } else {
+                    $woocommerce->add_message( $string );
+                }
+                $valid = false;
+                return $valid;
+            }
+            else
+            {
+                return $valid;
+            }
+
+
+        } else {
+
+            // if there's a pre-order in the cart already, prevent anything else from being added
+            if ( $this->cart_contains_pre_order() ) {
+
+                // Backwards compatible (pre 2.1) for outputting notice
+                if ( function_exists( 'wc_add_notice' ) ) {
+                    wc_add_notice( __( 'This product cannot be added to your cart because it already contains a pre-order, which must be purchased separately.', 'wc-pre-orders' ) );
+                } else {
+                    $woocommerce->add_error( __( 'This product cannot be added to your cart because it already contains a pre-order, which must be purchased separately.', 'wc-pre-orders' ) );
+                }
+
+                $valid = false;
+            }
+        }
+
+        return $valid;
+    }
